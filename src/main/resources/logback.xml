@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
     <property name="LOG_DIR" value="${APP_HOME}/logs"/>
-    <property name="LOG_FILE_NAME" value="zeus.log"/>
+    <property name="LOG_FILE_NAME" value="yzss.log"/>
 
     <timestamp key="byDay" datePattern="yyyy-MM-dd_HH:mm"/>
     <!-- Output to Console -->
@@ -34,8 +34,8 @@
     </appender>
 
     <root level="INFO">
-        <!--<appender-ref ref="Console"/>-->
-        <appender-ref ref="ROLLING"/>
+        <appender-ref ref="Console"/>
+        <!--<appender-ref ref="ROLLING"/>-->
     </root>
 
 </configuration>

@@ -8,6 +8,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.reflect.MethodSignature;
+import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -20,7 +21,7 @@ import java.lang.reflect.Method;
  */
 @Aspect
 @Component("desAop")
-public class DesAop {
+public class DesAop implements Ordered {
     @Resource
     DesEncrypt desEncrypt;
     DynamicBooleanProperty desaopEnable = DynamicPropertyFactory.getInstance().getBooleanProperty("desaop.enalbe", false);
@@ -51,4 +52,8 @@ public class DesAop {
         return point.proceed();
     }
 
+    @Override
+    public int getOrder() {
+        return AopOrder.DesAop;
+    }
 }

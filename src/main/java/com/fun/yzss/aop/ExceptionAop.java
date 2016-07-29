@@ -1,7 +1,10 @@
 package com.fun.yzss.aop;
 
+import com.alibaba.fastjson.JSON;
 import com.fun.yzss.exception.NotFoundException;
 import com.fun.yzss.exception.ValidateException;
+import com.fun.yzss.model.protocol.BaseResponse;
+import com.fun.yzss.model.protocol.ErrorResponse;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.slf4j.Logger;
@@ -9,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
 
 import javax.ws.rs.core.Response;
+import java.util.Date;
 
 /**
  * Created by fanqq on 2016/7/15.
@@ -27,18 +31,24 @@ public class ExceptionAop implements Ordered {
         String methodName = point.getSignature().getName();
         try {
             return point.proceed();
-        }catch (Throwable throwable){
+        } catch (Throwable throwable) {
+            ErrorResponse response = new ErrorResponse();
+            response.setResponseStatus(new BaseResponse("Fail"));
             logger.error(objectName + " throws an error when calling " + methodName + ".", throwable);
-            if (throwable instanceof ValidateException){
-                return Response.status(400).entity("Bad Request! Data is illegal.").build();
+            if (throwable instanceof ValidateException) {
+                response.setMsg("Bad Request! Data is illegal.");
+                return Response.status(400).entity(JSON.toJSON(response)).build();
             }
-            if (throwable instanceof NotFoundException){
-                return Response.status(404).entity("Not Found Error.").build();
+            if (throwable instanceof NotFoundException) {
+                response.setMsg("Not Found Error.");
+                return Response.status(404).entity(JSON.toJSON(response)).build();
             }
-            if (throwable instanceof NullPointerException){
-                return Response.status(404).entity("Not Found Error.").build();
+            if (throwable instanceof NullPointerException) {
+                response.setMsg("Not Found Error.");
+                return Response.status(404).entity(JSON.toJSON(response)).build();
             }
-            return Response.status(500).entity("Server Error.").build();
+            response.setMsg("Server Error.");
+            return Response.status(500).entity(JSON.toJSON(response)).build();
         }
     }
 }

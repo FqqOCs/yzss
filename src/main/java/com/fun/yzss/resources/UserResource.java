@@ -2,6 +2,7 @@ package com.fun.yzss.resources;
 
 import com.alibaba.fastjson.JSON;
 import com.fun.yzss.exception.ValidateException;
+import com.fun.yzss.model.protocol.AuthModel;
 import com.fun.yzss.model.protocol.RegisterModel;
 import org.springframework.stereotype.Component;
 
@@ -19,18 +20,17 @@ import javax.ws.rs.core.Response;
 @Path("/user")
 public class UserResource {
 
-
     @POST
-    @Path("/register")
-    public Response activateSlb(@Context HttpServletRequest request,
+    @Path("/auth")
+    public Response auth(@Context HttpServletRequest request,
                                 @Context HttpHeaders hh,
-                                String registeInfoDes) throws Exception {
-        RegisterModel register = JSON.parseObject(registeInfoDes, RegisterModel.class);
-        if (register == null){
+                                String auth) throws Exception {
+        AuthModel authModel = JSON.parseObject(auth, AuthModel.class);
+        if (authModel == null){
             throw new ValidateException("Data Illegal.");
         }
 
 
-        return Response.status(200).entity("suc:" + registeInfoDes).build();
+        return Response.status(200).entity("suc:" + auth).build();
     }
 }

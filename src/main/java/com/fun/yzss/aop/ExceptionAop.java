@@ -1,6 +1,7 @@
 package com.fun.yzss.aop;
 
 import com.alibaba.fastjson.JSON;
+import com.fun.yzss.exception.AuthException;
 import com.fun.yzss.exception.NotFoundException;
 import com.fun.yzss.exception.ValidateException;
 import com.fun.yzss.model.protocol.BaseResponse;
@@ -46,6 +47,10 @@ public class ExceptionAop implements Ordered {
             if (throwable instanceof NullPointerException) {
                 response.setMsg("Not Found Error.");
                 return Response.status(404).entity(JSON.toJSON(response)).build();
+            }
+            if (throwable instanceof AuthException) {
+                response.setMsg("Auth Failed.");
+                return Response.status(431).entity(JSON.toJSON(response)).build();
             }
             response.setMsg("Server Error.");
             return Response.status(500).entity(JSON.toJSON(response)).build();

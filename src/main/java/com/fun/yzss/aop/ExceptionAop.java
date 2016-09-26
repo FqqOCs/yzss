@@ -8,9 +8,11 @@ import com.fun.yzss.model.protocol.BaseResponse;
 import com.fun.yzss.model.protocol.ErrorResponse;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
+import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.Ordered;
+import org.springframework.stereotype.Component;
 
 import javax.ws.rs.core.Response;
 import java.util.Date;
@@ -18,6 +20,8 @@ import java.util.Date;
 /**
  * Created by fanqq on 2016/7/15.
  */
+@Aspect
+@Component("exceptionAop")
 public class ExceptionAop implements Ordered {
     @Override
     public int getOrder() {
@@ -38,22 +42,22 @@ public class ExceptionAop implements Ordered {
             logger.error(objectName + " throws an error when calling " + methodName + ".", throwable);
             if (throwable instanceof ValidateException) {
                 response.setMsg("Bad Request! Data is illegal.");
-                return Response.status(400).entity(JSON.toJSON(response)).build();
+                return Response.status(400).entity(JSON.toJSONString(response)).build();
             }
             if (throwable instanceof NotFoundException) {
                 response.setMsg("Not Found Error.");
-                return Response.status(404).entity(JSON.toJSON(response)).build();
+                return Response.status(404).entity(JSON.toJSONString(response)).build();
             }
             if (throwable instanceof NullPointerException) {
                 response.setMsg("Not Found Error.");
-                return Response.status(404).entity(JSON.toJSON(response)).build();
+                return Response.status(404).entity(JSON.toJSONString(response)).build();
             }
             if (throwable instanceof AuthException) {
                 response.setMsg("Auth Failed.");
-                return Response.status(431).entity(JSON.toJSON(response)).build();
+                return Response.status(431).entity(JSON.toJSONString(response)).build();
             }
             response.setMsg("Server Error.");
-            return Response.status(500).entity(JSON.toJSON(response)).build();
+            return Response.status(500).entity(JSON.toJSONString(response)).build();
         }
     }
 }

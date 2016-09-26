@@ -34,7 +34,7 @@ public class DefaultQueryExecutor implements QueryExecutor {
     public <T extends DataObject> List<T> executeQuery(QueryContext ctx, Class<T> resultClass) {
         PreparedStatement ps = null;
         try {
-            resolveSqlStatement(ctx);
+//            resolveSqlStatement(ctx);
             ps = createPreparedStatement(ctx, transactionManager.getConnection());
             if (ctx.getFetchSize() > 0) {
                 ps.setFetchSize(ctx.getFetchSize());
@@ -65,14 +65,14 @@ public class DefaultQueryExecutor implements QueryExecutor {
     public int executeUpdate(QueryContext ctx) {
         PreparedStatement ps = null;
         try {
-            resolveSqlStatement(ctx);
+//            resolveSqlStatement(ctx);
             ps = createPreparedStatement(ctx, transactionManager.getConnection());
 
             setInParameters(ps, ctx, ctx.getDataObject());
 
             int rowCount = ps.executeUpdate();
 
-            if (ctx.getType() == QueryType.INSERT) {
+            if (ctx.getQuery().getType() == QueryType.INSERT) {
                 ctx.getDataObject().setId(ps.getGeneratedKeys().getLong(1));
             }
             return rowCount;
@@ -98,9 +98,9 @@ public class DefaultQueryExecutor implements QueryExecutor {
         if (protos == null || protos.length == 0) return new int[0];
         PreparedStatement ps = null;
         boolean inTransaction = transactionManager.isInTransaction();
-        int[] result = new int[protos.length];
+        int[] result;
         try {
-            resolveSqlStatement(ctx);
+//            resolveSqlStatement(ctx);
             ps = createPreparedStatement(ctx, transactionManager.getConnection());
             if (!inTransaction) {
                 ps.getConnection().setAutoCommit(false);
@@ -115,7 +115,7 @@ public class DefaultQueryExecutor implements QueryExecutor {
             result = ps.executeBatch();
 
             // Retrieve Generated Keys if have
-            if (ctx.getType() == QueryType.INSERT) {
+            if (ctx.getQuery().getType() == QueryType.INSERT) {
                 ResultSet generatedKeys = ps.getGeneratedKeys();
                 for (T pro : protos) {
                     if (generatedKeys != null && generatedKeys.next()) {
@@ -160,7 +160,7 @@ public class DefaultQueryExecutor implements QueryExecutor {
 
 
     protected PreparedStatement createPreparedStatement(QueryContext ctx, Connection conn) throws SQLException {
-        QueryType type = ctx.getType();
+        QueryType type = ctx.getQuery().getType();
         PreparedStatement ps;
 
         if (type == QueryType.SELECT) {
@@ -172,37 +172,9 @@ public class DefaultQueryExecutor implements QueryExecutor {
         return ps;
     }
 
-    protected void resolveSqlStatement(QueryContext ctx) throws DalException {
-        Pattern pattern = Pattern.compile("\\{(.*)\\}");
-        Matcher matcher = pattern.matcher(ctx.getQuery());
-        String sql = ctx.getQuery();
-        try {
-            while (matcher.find()) {
-                String name = matcher.group(1);
-                Object obj = ctx.getDataObject().getByName(name);
-                int size = 1;
-                if (obj instanceof List) {
-                    size = ((List) obj).size();
-                }
-                String to = "";
-                for (int i = 0; i < size; i++) {
-                    if (i == 0) {
-                        to += "?";
-                    } else {
-                        to += ",?";
-                    }
-                }
-                sql = sql.replaceFirst("\\{" + name + "\\}", to);
-            }
-            ctx.setSqlStatement(sql);
-        } catch (Exception e) {
-            throw new DalException("Parser Query failed.", e);
-        }
-    }
-
     private <T extends DataObject> void setInParameters(PreparedStatement ps, QueryContext ctx, T prod) throws DalException {
         Pattern pattern = Pattern.compile("\\{(.*)\\}");
-        Matcher matcher = pattern.matcher(ctx.getQuery());
+        Matcher matcher = pattern.matcher(ctx.getQuery().getQuery());
         int index = 1;
         try {
             while (matcher.find()) {
@@ -229,13 +201,13 @@ public class DefaultQueryExecutor implements QueryExecutor {
         T row;
         while (rs.next()) {
             row = resultClass.newInstance();
-            i = 0;
-            for (String name : ctx.getObjNames()) {
+            i = 1;
+            for (String name : ctx.getQuery().getObjNames()) {
                 row.setByName(name, rs.getObject(i++));
             }
             res.add(row);
         }
 
-        return null;
+        return res;
     }
 }

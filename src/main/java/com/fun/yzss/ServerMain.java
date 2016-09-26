@@ -23,6 +23,13 @@ public class ServerMain {
         SystemEnvHandler.setPropertyDefaultValue("server.port", "8766");
         SystemEnvHandler.setPropertyDefaultValue("archaius.deployment.applicationId", APPLICATION_NAME);
         SystemEnvHandler.setPropertyDefaultValue("archaius.deployment.environment", "dev");
+        SystemEnvHandler.setPropertyDefaultValue("mysql.driver", "com.mysql.jdbc.Driver");
+        SystemEnvHandler.setPropertyDefaultValue("mysql.user", "root");
+        SystemEnvHandler.setPropertyDefaultValue("mysql.password", "123456");
+        SystemEnvHandler.setPropertyDefaultValue("mysql.min.pool.size", "1");
+        SystemEnvHandler.setPropertyDefaultValue("mysql.max.pool.size", "10");
+        SystemEnvHandler.setPropertyDefaultValue("mysql.url", "jdbc:mysql://10.2.25.95:3306/zeus");
+        SystemEnvHandler.setPropertyDefaultValue("mysql.connection.properties", "useUnicode=true&amp;characterEncoding=UTF-8&amp;autoReconnect=true");
 
     }
 

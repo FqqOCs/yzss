@@ -17,4 +17,16 @@ public class TagDao {
     public TagDo[] findAllByIds(Long[] targetIds) {
         return new TagDo[0];
     }
+
+    public TagDo findByName(String name) {
+        return null;
+    }
+
+    public void delete(TagDo d) {
+
+    }
+
+    public void insert(TagDo d) {
+
+    }
 }

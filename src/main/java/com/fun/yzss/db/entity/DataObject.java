@@ -8,16 +8,6 @@ import java.lang.reflect.Field;
  * Created by fanqq on 2016/9/23.
  */
 public abstract class DataObject {
-    private Long id;
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
 
     public Object getByName(String name) throws Exception {
         Field field = this.getClass().getDeclaredField(name);

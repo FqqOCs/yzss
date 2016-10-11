@@ -2,8 +2,10 @@ package com.fun.yzss.service.tag.impl;
 
 import com.fun.yzss.db.dao.TagDao;
 import com.fun.yzss.db.dao.TagItemDao;
+import com.fun.yzss.db.engine.InTransaction;
 import com.fun.yzss.db.entity.TagDo;
 import com.fun.yzss.db.entity.TagItemDo;
+import com.fun.yzss.exception.ValidateException;
 import com.fun.yzss.service.tag.TagService;
 import org.springframework.stereotype.Service;
 
@@ -22,26 +24,92 @@ public class TagServiceImpl implements TagService {
 
 
     @Override
+    @InTransaction
     public void tagging(String tagName, String type, Long targetId) throws Exception {
+        TagDo d = tagDao.findByName(tagName);
+        if (d == null) {
+            d = new TagDo().setName(tagName);
+            tagDao.insert(d);
+        }
+        TagItemDo l = new TagItemDo().setTagId(d.getId()).setType(type).setTargetId(targetId);
 
+        tagItemDao.insert(l);
     }
 
     @Override
+    @InTransaction
     public void tagging(String tagName, String type, Long[] targetIds) throws Exception {
-
+        TagDo d = tagDao.findByName(tagName);
+        if (d == null) {
+            d = new TagDo().setName(tagName);
+            tagDao.insert(d);
+        }
+        TagItemDo[] l = new TagItemDo[targetIds.length];
+        for (int i = 0; i < targetIds.length; i++) {
+            l[i] = new TagItemDo().setTagId(d.getId()).setType(type).setTargetId(targetIds[i]);
+        }
+        tagItemDao.insert(l);
     }
 
     @Override
+    @InTransaction
     public void untagging(String tagName, String type, Long targetId) throws Exception {
-
+        TagDo d = tagDao.findByName(tagName);
+        if (d == null) {
+            throw new ValidateException("Tag named " + tagName + "is not found.");
+        }
+        if (targetId != null) {
+            TagItemDo l = new TagItemDo().setTagId(d.getId()).setType(type).setTargetId(targetId);
+            tagItemDao.deleteTagItems(l);
+        } else {
+            tagItemDao.deleteTagType(new TagItemDo().setTagId(d.getId()).setType(type));
+        }
     }
 
     @Override
+    @InTransaction
     public void untagging(String tagName, String type, Long[] targetIds) throws Exception {
-
+        TagDo d = tagDao.findByName(tagName);
+        if (d == null) {
+            throw new ValidateException("Tag named " + tagName + "is not found.");
+        }
+        if (targetIds != null) {
+            TagItemDo[] l = new TagItemDo[targetIds.length];
+            for (int i = 0; i < targetIds.length; i++) {
+                l[i] = new TagItemDo().setTagId(d.getId()).setType(type).setTargetId(targetIds[i]);
+            }
+            tagItemDao.deleteTagItems(l);
+        } else {
+            tagItemDao.deleteTagType(new TagItemDo().setTagId(d.getId()).setType(type));
+        }
     }
 
     @Override
+    @InTransaction
+    public void clear(String type, Long itemId) throws Exception {
+        List<TagItemDo> list = tagItemDao.findByItemAndType(itemId, type);
+        if (list.size() > 0) {
+            tagItemDao.deleteById(list.toArray(new TagItemDo[list.size()]));
+        }
+    }
+
+    @Override
+    @InTransaction
+    public void removeTag(String name, boolean force) throws Exception {
+        TagDo d = tagDao.findByName(name);
+        if (d == null) return;
+        if (force) {
+            tagItemDao.deleteTag(new TagItemDo().setTagId(d.getId()));
+        } else {
+            List<TagItemDo> check = tagItemDao.findByTag(d.getId());
+            if (check.size() > 0)
+                throw new Exception("Combination exists with tag " + name + ".");
+        }
+        tagDao.delete(d);
+    }
+
+    @Override
+    @InTransaction
     public Set<Long> queryByType(String type) throws Exception {
         Set<Long> result = new HashSet<>();
         for (TagItemDo d : tagItemDao.findAllByType(type)) {
@@ -51,6 +119,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @InTransaction
     public Set<Long> queryByTypeAndTag(String tagName, String type) throws Exception {
         Set<Long> result = new HashSet<>();
         for (TagItemDo d : tagItemDao.findAllByType(tagName, type)) {
@@ -60,6 +129,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @InTransaction
     public Set<Long> unionQuery(List<String> tagNames, String type) throws Exception {
         List<TagDo> tags = tagDao.findAllByNames(tagNames.toArray(new String[tagNames.size()]));
         if (tags.size() == 0) return new HashSet<>();
@@ -77,6 +147,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @InTransaction
     public Set<Long> joinQuery(List<String> tagNames, String type) throws Exception {
         List<TagDo> tags = tagDao.findAllByNames(tagNames.toArray(new String[tagNames.size()]));
         if (tags.size() == 0) return new HashSet<>();
@@ -106,6 +177,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @InTransaction
     public Set<String> getTags(Long targetId) throws Exception {
         Set<String> result = new HashSet<>();
         for (TagDo d : tagDao.findAllByIds(new Long[]{targetId})) {
@@ -115,6 +187,7 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @InTransaction
     public Set<String> getTags(Long[] targetIds) throws Exception {
         Set<String> result = new HashSet<>();
         for (TagDo d : tagDao.findAllByIds(targetIds)) {
@@ -124,24 +197,56 @@ public class TagServiceImpl implements TagService {
     }
 
     @Override
+    @InTransaction
     public Set<String> getTags(String type, Long itemId) throws Exception {
         List<TagItemDo> list = tagItemDao.findByItemAndType(itemId, type);
-        List<String> result = new ArrayList<>();
+        Set<String> result = new HashSet<>();
         if (list.size() == 0)
             return result;
         Long[] tagIds = new Long[list.size()];
         for (int i = 0; i < list.size(); i++) {
             tagIds[i] = list.get(i).getTagId();
         }
-        for (TagDo tagDo : tagDao.findAllByIds(tagIds, TagEntity.READSET_FULL)) {
+        for (TagDo tagDo : tagDao.findAllByIds(tagIds)) {
             result.add(tagDo.getName());
         }
         return result;
     }
 
     @Override
+    @InTransaction
     public Map<Long, List<String>> getTags(String type, Long[] itemIds) throws Exception {
-        return null;
+        Map<Long, List<Long>> rItemTag = new HashMap<>();
+        Set<Long> tagIds = new HashSet<>();
+
+        for (TagItemDo d : tagItemDao.findAllByItemsAndType(itemIds, type)) {
+            tagIds.add(d.getTagId());
+            List<Long> l = rItemTag.get(d.getTargetId());
+            if (l == null) {
+                l = new ArrayList<>();
+                rItemTag.put(d.getTargetId(), l);
+            }
+            l.add(d.getTagId());
+        }
+
+        if (tagIds.size() == 0) return new HashMap<>();
+
+        Map<Long, String> rIdName = new HashMap<>();
+        for (TagDo d : tagDao.findAllByIds(tagIds.toArray(new Long[tagIds.size()]))) {
+            rIdName.put(d.getId(), d.getName());
+        }
+
+        Map<Long, List<String>> result = new HashMap<>();
+        for (Map.Entry<Long, List<Long>> e : rItemTag.entrySet()) {
+            List<String> l = new ArrayList<>();
+            result.put(e.getKey(), l);
+            for (Long i : e.getValue()) {
+                String r = rIdName.get(i);
+                if (r != null) l.add(r);
+            }
+        }
+
+        return result;
     }
 
     private class Counter {

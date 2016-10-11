@@ -12,23 +12,26 @@ public class TagItemDo extends DataObject {
         return tagId;
     }
 
-    public void setTagId(Long tagId) {
+    public TagItemDo setTagId(Long tagId) {
         this.tagId = tagId;
+        return this;
     }
 
     public String getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public TagItemDo setType(String type) {
         this.type = type;
+        return this;
     }
 
     public Long getTargetId() {
         return targetId;
     }
 
-    public void setTargetId(Long targetId) {
+    public TagItemDo setTargetId(Long targetId) {
         this.targetId = targetId;
+        return this;
     }
 }

@@ -15,4 +15,5 @@ package com.fun.yzss.aop;
 public class AopOrder {
     public static int Exception = 0;
     public static int DesAop = 3;
+    public static int TransactionAop = 5;
 }

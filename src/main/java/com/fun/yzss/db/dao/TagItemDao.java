@@ -26,4 +26,40 @@ public class TagItemDao {
     public List<TagItemDo> findByItemAndType(Long itemId, String type) {
         return null;
     }
+
+    public TagItemDo[] findAllByItemsAndType(Long[] itemIds, String type) {
+        return new TagItemDo[0];
+    }
+
+    public void deleteTag(TagItemDo aVoid) {
+
+    }
+
+    public List<TagItemDo> findByTag(Long id) {
+        return null;
+    }
+
+    public void insert(TagItemDo[] l) {
+
+    }
+
+    public void insert(TagItemDo l) {
+
+    }
+
+    public void deleteTagItems(TagItemDo[] l) {
+
+    }
+
+    public void deleteTagType(TagItemDo tagItemDo) {
+
+    }
+
+    public void deleteTagItems(TagItemDo l) {
+
+    }
+
+    public void deleteById(TagItemDo[] tagItemDos) {
+
+    }
 }

@@ -7,21 +7,21 @@ public class TagDo extends DataObject {
     String name;
     Long id;
 
-    @Override
     public Long getId() {
         return id;
     }
 
-    @Override
-    public void setId(Long id) {
+    public TagDo setId(Long id) {
         this.id = id;
+        return this;
     }
 
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
+    public TagDo setName(String name) {
         this.name = name;
+        return this;
     }
 }
